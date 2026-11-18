@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>my to-do</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#202532;--muted:#7e8798;--line:#e5e8ef;--accent:#6c63ff;--accent-soft:#eeedff;--danger:#b65b67;--shadow:0 18px 45px #26324b12} 
+[data-theme="dark"]{--bg:#151820;--card:#20242e;--text:#f1f3f8;--muted:#9ba4b6;--line:#343a49;--accent:#a39dff;--accent-soft:#302e50;--danger:#eb8995;--shadow:0 18px 45px #00000035}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;transition:background .25s,color .25s}.app{width:min(720px,calc(100% - 32px));margin:0 auto;padding:58px 0 72px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}.eyebrow{color:var(--accent);font-size:.76rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;margin:0 0 6px}.top h1{font-size:clamp(2rem,6vw,3rem);letter-spacing:-.055em;line-height:1.05;margin:0}.theme{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:10px 13px;cursor:pointer;transition:transform .2s,background .2s}.theme:hover{transform:translateY(-2px)}.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}.composer{display:flex;gap:10px}.composer input[type=text]{min-width:0;flex:1;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;padding:12px 14px;outline:0}.composer input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}button{font:inherit}.add{border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;padding:0 19px;cursor:pointer;transition:filter .2s,transform .2s}.add:hover{filter:brightness(1.06);transform:translateY(-1px)}.options{display:flex;gap:10px;align-items:center;margin-top:12px}.date{border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);padding:7px 9px}.hint{color:var(--muted);font-size:.82rem}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:25px 2px 14px}.filters{display:flex;gap:4px}.filters button,.clear{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:9px;padding:7px 10px}.filters button.active{background:var(--accent-soft);color:var(--accent);font-weight:700}.clear:hover{color:var(--danger)}.count{color:var(--muted);font-size:.9rem}.tasks{list-style:none;padding:0;margin:0}.task{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding:16px 4px;animation:slide .24s ease both}.task.removing{opacity:0;transform:translateX(18px);transition:.2s}.task.done .task-text{text-decoration:line-through;color:var(--muted)}.check{appearance:none;width:21px;height:21px;flex:0 0 21px;border:2px solid #c6ccda;border-radius:7px;cursor:pointer;position:relative;transition:.2s}.check:checked{border-color:var(--accent);background:var(--accent)}.check:checked:after{content:'✓';position:absolute;color:#fff;font-size:14px;font-weight:800;left:3px;top:-2px}.task-main{min-width:0;flex:1}.task-text{display:block;overflow-wrap:anywhere}.due{font-size:.78rem;color:var(--muted);margin-top:3px}.overdue .due{color:var(--danger);font-weight:700}.actions{display:flex;gap:4px;opacity:0;transition:opacity .2s}.task:hover .actions,.task:focus-within .actions{opacity:1}.actions button{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:6px;border-radius:7px}.actions button:hover{background:var(--accent-soft);color:var(--accent)}.empty{text-align:center;color:var(--muted);padding:38px 15px}.edit-input{width:100%;border:1px solid var(--accent);border-radius:7px;background:transparent;color:var(--text);font:inherit;padding:4px 7px;outline:0}@keyframes slide{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}@media(max-width:520px){.app{padding-top:32px}.panel{padding:16px}.toolbar{align-items:flex-start;flex-direction:column;gap:8px}.actions{opacity:1}.hint{display:none}.composer{flex-wrap:wrap}.composer input[type=text]{flex-basis:100%}.add{padding:11px 18px;margin-left:auto}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top"><div><p class="eyebrow">A little clarity</p><h1>my to-do</h1></div><button class="theme" id="theme" type="button" aria-label="Toggle dark mode">◐ <span>Theme</span></button></header>
+  <section class="panel">
+    <form class="composer" id="form"><input id="newTask" type="text" maxlength="200" autocomplete="off" placeholder="What needs doing?" aria-label="New task"><button class="add" type="submit">Add task</button></form>
+    <div class="options"><input class="date" id="dueDate" type="date" aria-label="Optional due date"><span class="hint">Optional due date · Press Enter to add</span></div>
+    <div class="toolbar"><nav class="filters" aria-label="Task filters"><button data-filter="all" class="active" type="button">All</button><button data-filter="active" type="button">Active</button><button data-filter="completed" type="button">Completed</button></nav><button class="clear" id="clear" type="button">Clear completed</button></div>
+    <ul class="tasks" id="tasks"></ul><div class="empty" id="empty">Nothing here yet. Add your first task above.</div>
+  </section>
+</main>
+<script>
+const taskKey='daily-tasks', themeKey='daily-theme';
+let tasks=JSON.parse(localStorage.getItem(taskKey)||'[]'), filter='all';
+const $=s=>document.querySelector(s), list=$('#tasks'), input=$('#newTask'), due=$('#dueDate');
+const save=()=>localStorage.setItem(taskKey,JSON.stringify(tasks));
+const esc=s=>s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const isOverdue=t=>t.dueDate&&!t.completed&&new Date(t.dueDate+'T23:59:59')<new Date();
+function render(){
+  const visible=tasks.filter(t=>filter==='all'||(filter==='active'&&!t.completed)||(filter==='completed'&&t.completed));
+  list.innerHTML=visible.map(t=>`<li class="task ${t.completed?'done ':''}${isOverdue(t)?'overdue':''}" data-id="${t.id}"><input class="check" type="checkbox" ${t.completed?'checked':''} aria-label="Mark task complete"><div class="task-main"><span class="task-text" title="Double-click to edit">${esc(t.text)}</span>${t.dueDate?`<div class="due">${isOverdue(t)?'Overdue · ':''}${new Date(t.dueDate+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</div>`:''}</div><div class="actions"><button data-action="edit" type="button" aria-label="Edit task">Edit</button><button data-action="delete" type="button" aria-label="Delete task">×</button></div></li>`).join('');
+  $('#empty').hidden=visible.length>0; $('#empty').textContent=tasks.length?'No tasks match this filter.':'Nothing here yet. Add your first task above.';
+  $('.count')?.remove(); const count=document.createElement('span'); count.className='count'; count.textContent=`${tasks.filter(t=>!t.completed).length} remaining`; $('.toolbar').append(count);
+  document.querySelectorAll('.filters button').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter));
+}
+$('#form').addEventListener('submit',e=>{e.preventDefault();const text=input.value.trim();if(!text)return; if(tasks.some(t=>t.text.toLowerCase()===text.toLowerCase())){input.setCustomValidity('That task already exists.');input.reportValidity();input.setCustomValidity('');return}tasks.unshift({id:crypto.randomUUID(),text,completed:false,createdAt:new Date().toISOString(),dueDate:due.value||null});save();input.value='';due.value='';render();input.focus()});
+$('.filters').addEventListener('click',e=>{if(e.target.dataset.filter){filter=e.target.dataset.filter;render()}});
+$('#clear').addEventListener('click',()=>{tasks=tasks.filter(t=>!t.completed);save();render()});
+list.addEventListener('click',e=>{const row=e.target.closest('.task');if(!row)return;const task=tasks.find(t=>t.id===row.dataset.id);if(e.target.matches('.check')){task.completed=e.target.checked;save();render()}else if(e.target.dataset.action==='delete'){row.classList.add('removing');setTimeout(()=>{tasks=tasks.filter(t=>t.id!==task.id);save();render()},180)}else if(e.target.dataset.action==='edit')edit(row,task)});
+list.addEventListener('dblclick',e=>{const row=e.target.closest('.task');if(row&&e.target.matches('.task-text'))edit(row,tasks.find(t=>t.id===row.dataset.id))});
+function edit(row,task){if(row.querySelector('.edit-input'))return;const field=document.createElement('input');field.className='edit-input';field.value=task.text;field.maxLength=200;row.querySelector('.task-text').replaceWith(field);field.focus();field.select();const finish=()=>{const text=field.value.trim();if(text&&(!tasks.some(t=>t.id!==task.id&&t.text.toLowerCase()===text.toLowerCase()))){task.text=text;save()}render()};field.addEventListener('keydown',e=>{if(e.key==='Enter')finish();if(e.key==='Escape')render()});field.addEventListener('blur',finish)}
+$('#theme').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';localStorage.setItem(themeKey,dark?'dark':'light')});
+if(localStorage.getItem(themeKey)==='dark')document.documentElement.dataset.theme='dark';render();
+</script>
+</body>
+</html>
